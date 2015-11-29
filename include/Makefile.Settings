@@ -16,8 +16,8 @@ AR		= ar
 RANLIB		= /bin/true
 CHMOD		= chmod
 
-INCLDIR	= $(PRAKTROOT)/include
-LIBDIR	= $(PRAKTROOT)/lib
+INCLDIR	= ../include
+LIBDIR	= ../lib
 
 GCCWARN	= -Wall -Wstrict-prototypes -Wpointer-arith -Wcast-qual\
 	  -Wwrite-strings -Waggregate-return -Wstrict-prototypes\

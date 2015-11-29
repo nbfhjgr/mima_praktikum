@@ -7,7 +7,7 @@
 #-------------------------------------------------------------
 #
 
-include $(PRAKTROOT)/include/Makefile.Settings
+include ../include/Makefile.Settings
 
 feal:	feal.o	fealreq.o
 	$(CC) -o feal feal.o fealreq.o $(LFLAGS)
