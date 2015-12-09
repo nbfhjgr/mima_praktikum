@@ -1,0 +1,57 @@
+
+
+
+
+///////
+// Magma "Taschenrechner" unter:    http://magma.maths.usyd.edu.au/calc/
+///////
+
+
+
+
+
+//////////////////////////////////////////////////////////////
+// K<a>=GF(2^155) und der Erzeuger a genuegt der Bedingung
+//      a^155+a^62+1 = 0
+//////////////////////////////////////////////////////////////
+
+R<x>:=PolynomialRing(GF(2));
+definingPolynomial:=x^155+x^62+1;
+K<a>:=ext<GF(2)|definingPolynomial>;
+
+
+
+//////////////////////////////////////////////////////////////
+// B0 ist die Matrix, die bei 0-Bits zu verwenden ist, und
+// B1 ist die Matrix, die bei 1-Bits zu verwenden ist
+//////////////////////////////////////////////////////////////
+
+B0:=SL(2,K)![a,1,1,0];
+B1:=SL(2,K)![a,a+1,1,1];
+
+
+
+//////////////////////////////////////////////////////////////
+// HashValue(s) berechnet fuer einen BitString s aus {0,1}^*
+//den zugehoerigen Hashwert aus SL(2,K);
+//////////////////////////////////////////////////////////////
+
+HashValue:=function(bitString)
+  if bitString eq ""
+    then return Identity(SL(2,K));
+    else return &*[(bitString[i] eq "0") select B0 else B1:
+                   i in [1..#bitString]];
+  end if;
+end function;
+
+
+
+//////////////////////////////////////////////////////////////
+// ElementOfSmallOrder() soll einen Bitstring der Laenge
+// 0<n<1024 berechnen, dessen Hashwert die Einheitsmatrix ist
+//////////////////////////////////////////////////////////////
+
+ElementOfSmallOrder:=function()
+
+end function;
+
