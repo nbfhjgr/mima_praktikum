@@ -37,9 +37,9 @@ void adjust(int* max_prob, int *pins) {
 			max_prob[i] = max_prob[loc];
 			max_prob[loc] = temp;
 
-			temp_pin = pins[i - 1];
-			pins[i - 1] = pins[loc - 1];
-			pins[loc - 1] = temp_pin;
+			temp_pin = pins[i];
+			pins[i] = pins[loc];
+			pins[loc] = temp_pin;
 
 			i = loc;
 		} else
@@ -58,7 +58,7 @@ void attack(void) {
 	int sum_counts_dig[4];		//Sum von jedem bit PIN
 	int index = 0;
 
-	int pins[100];
+	int pins[101];
 	int max_prob[101], sum = 0;
 
 	int i, j, x, y, k, l;
@@ -100,12 +100,12 @@ void attack(void) {
 
 
 	// Berechnen alle 9000 Probs
-	for (i = 1; i < 10; i++)
+	for (i = 0; i < 9; i++)
 		for (j = 0; j < 10; j++)
 			for (k = 0; k < 10; k++)
 				for (l = 0; l < 10; l++)
-					prob[(i - 1) * 1000 + j * 100 + k * 10 + l] =
-							counts_dig[0][i] * counts_dig[1][j]
+					prob[i  * 1000 + j * 100 + k * 10 + l] =
+							counts_dig[0][i+1] * counts_dig[1][j]
 									* counts_dig[2][k] * counts_dig[3][l];
 
 	// Suchen die 100 größte Prob Zifferen aus
@@ -113,21 +113,29 @@ void attack(void) {
 	for (i = 0; i < 9000; i++) {
 		if (prob[i] > max_prob[1]) {
 			max_prob[1] = prob[i];
-			pins[0] = i + 1000;
+			pins[1] = i + 1000;
 		}
 		adjust(max_prob, pins);
 	}
 
+
 	// Berechnen die Prob von Attacks-Erfolg
-	for (i=0;i<100;i++)
-		sum+=pins[i];
+	for (i=1;i<101;i++)
+		sum+=max_prob[i];
 
 	printf("%.4f\n",
 			(float) sum
 					/ (sum_counts_dig[0] * sum_counts_dig[1] * sum_counts_dig[2]
 							* sum_counts_dig[3]));
 
-	index = try_pins(pins, try_max());
+	for (i=0;i<100;i++)
+		printf("%d,",pins[i]);
+	printf("\n");
+
+
+	int tmax=try_max();
+
+	index = try_pins(&pins[1], tmax);
 	if (index != -1)
 		printf("Die PIN ist: %d\n", pins[index]);
 	else
