@@ -102,6 +102,27 @@ int main(int argc, char **argv)
    *>>>>          - Schlüssel für Telefonieren   <<<<*
    *>>>>                                         <<<<*/
 
+  printf("%s\n",msg1);
+
+  msg1.body.Server_Alice.Serv_A1.Key_AB;
+  int TimeStamp=msg1.body.Server_Alice.Serv_A1.TimeStamp;
+
+  msg2.typ=Alice_Bob;
+  //msg2.body.Alice_Bob.Auth_A2.Name="Alice";
+  msg2.body.Alice_Bob.Auth_A2.Rand=SwitchRandNum(0);
+  msg2.body.Alice_Bob.Serv_B2=msg1.body.Server_Alice.Serv_B1;
+  if (!(con=ConnectTo(OurNetName,OthersNetName))) {
+      fprintf(stderr,"ALICE: Kann keine Verbindung zum Bob aufbauen: %s\n",NET_ErrorText());
+      exit(20);
+    }
+
+  PutMessage("Bob",con,&msg2);
+
+  GetMessage("Bob",con,&msg2,Bob_Alice);
+  msg2.body.Bob_Alice.Auth_B3.Name;
+  msg2.body.Bob_Alice.Auth_B3.Rand;
+
+
   /***********************  Phone starten  *****************************/
   Phone(con,OurName,OthersName,EnCrypt,DeCrypt);
   DisConnect(con);

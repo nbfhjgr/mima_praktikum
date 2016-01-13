@@ -7,7 +7,7 @@
 #-------------------------------------------------------------
 #
 
-include $(PRAKTROOT)/include/Makefile.Settings
+include ../include/Makefile.Settings
 
 SRC	= alice.c bob.c server.c kerberos.c
 HEADER	= kerberos.h

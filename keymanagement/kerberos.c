@@ -1,13 +1,13 @@
 /*************************************************************
-**         Europäisches Institut für Systemsicherheit        *
-**   Praktikum "Kryptographie und Datensicherheitstechnik"   *
-**                                                           *
-** Versuch 5: Keymanagement mit dem Kerberos-Protokoll       *
-**                                                           *
-**************************************************************
-**
-** kerberos.c: Hilfsroutinen für den Keymanagement-Versuch
-**/
+ **         Europäisches Institut für Systemsicherheit        *
+ **   Praktikum "Kryptographie und Datensicherheitstechnik"   *
+ **                                                           *
+ ** Versuch 5: Keymanagement mit dem Kerberos-Protokoll       *
+ **                                                           *
+ **************************************************************
+ **
+ ** kerberos.c: Hilfsroutinen für den Keymanagement-Versuch
+ **/
 
 #include "kerberos.h"
 
@@ -19,18 +19,16 @@
  * der Nachricht. NAME wird nur für die Ausgabe einer eventuellen
  * Fehlermeldung benötigt.  
  */
-void PutMessage(const NetName name, Connection con, Message *m)
-  {
-    int wcnt;
+void PutMessage(const NetName name, Connection con, Message *m) {
+	int wcnt;
 
-    wcnt = Transmit(con,m,sizeof(Message));
-    if (wcnt!=sizeof(Message)) {
-      fprintf(stderr,"Fehler beim Senden an %s: %s\n",name,NET_ErrorText());
-      exit(20);
-    }
-  }
-
-
+	wcnt = Transmit(con, m, sizeof(Message));
+	if (wcnt != sizeof(Message)) {
+		fprintf(stderr, "Fehler beim Senden an %s: %s\n", name,
+				NET_ErrorText());
+		exit(20);
+	}
+}
 
 /*
  * Empfängt eine Nachricht von der Connection CON und speichert sie
@@ -43,35 +41,35 @@ void PutMessage(const NetName name, Connection con, Message *m)
  * der Fehlermeldung benötigt.
  */
 
-void GetMessage(const NetName name, Connection con, Message *m, MsgType typ)
-  {
-    int rcnt;
+void GetMessage(const NetName name, Connection con, Message *m, MsgType typ) {
+	int rcnt;
 
-    rcnt = Receive(con,m,sizeof(Message));
-    if (rcnt!=sizeof(Message)) {
-      fprintf(stderr,"Fehler beim Empfangen von %s: %s\n",name,NET_ErrorText());
-      exit(20);
-    }
+	rcnt = Receive(con, m, sizeof(Message));
+	if (rcnt != sizeof(Message)) {
+		fprintf(stderr, "Fehler beim Empfangen von %s: %s\n", name,
+				NET_ErrorText());
+		exit(20);
+	}
 
-    if (m->typ==Error) {
-      fprintf(stderr,"Fehlernachricht von %s: %s\n",name,m->body.Error.ErrorText);
-      exit(20);
-    }
+	if (m->typ == Error) {
+		fprintf(stderr, "Fehlernachricht von %s: %s\n", name,
+				m->body.Error.ErrorText);
+		exit(20);
+	}
 
-    if (m->typ!=typ) {
-      fprintf(stderr,"Falsche Nachricht von %s empfangen.\n",name);
-      exit(20);
-    }
-  }
-
+	if (m->typ != typ) {
+		fprintf(stderr, "Falsche Nachricht von %s empfangen.\n", name);
+		exit(20);
+	}
+}
 
 /*
  * SwitchRandNum(x) führt die "Fortschaltung" der Zufallszahl X durch
  */
 
-int SwitchRandNum(int x)
-  {
-  /*>>>>                                                  <<<<*/
-  /*>>>>  Aufgabe: Zufallszahl X 'geeignet' fortschalten  <<<<*/
-  /*>>>>                                                  <<<<*/
-  }
+int SwitchRandNum(int x) {
+	/*>>>>                                                  <<<<*/
+	/*>>>>  Aufgabe: Zufallszahl X 'geeignet' fortschalten  <<<<*/
+	/*>>>>                                                  <<<<*/
+
+}

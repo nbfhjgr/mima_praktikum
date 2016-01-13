@@ -151,5 +151,8 @@ void           PhoneTap_Display ( int where, int c );
 void           PhoneTap_Clear   ( void );
 void           PhoneTap_Die     ( void );
 
+//TODO to delete
+extern char*   MakeNetName2(const char *name);
+
 #endif
 

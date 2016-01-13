@@ -84,8 +84,8 @@ void attack(void) {
 
 	// Berechnen Prob von Ziffer in 1. bit PIN
 	for (i = 0; i < 10; i++) {
-		counts_dig[0][i] = PIN_D1[i] * PIN_OtherD[(i + 10 - Off1[0]) % 10]
-				* PIN_OtherD[(i + 10 - Off2[0]) % 10];
+		counts_dig[0][i] = PIN_D1[i] * PIN_D1[(i + 10 - Off1[0]) % 10]
+				* PIN_D1[(i + 10 - Off2[0]) % 10];
 		sum_counts_dig[0] += counts_dig[0][i];
 	}
 
@@ -128,7 +128,7 @@ void attack(void) {
 					/ (sum_counts_dig[0] * sum_counts_dig[1] * sum_counts_dig[2]
 							* sum_counts_dig[3]));
 
-	for (i=0;i<100;i++)
+	for (i=1;i<101;i++)
 		printf("%d,",pins[i]);
 	printf("\n");
 
