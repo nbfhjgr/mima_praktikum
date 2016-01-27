@@ -65,7 +65,7 @@ static void dorequest(struct FealRequest *fr)
     if (un!=NULL)
     	strncpy(fr->username,un,USERNAMELEN-1);
     else
-    	memset(fr->username,0,80*sizeof(char));
+    	memset(fr->username,0,USERNAMELEN*sizeof(char));
     fr->username[USERNAMELEN-1]=0;
 
 #ifdef TRACE

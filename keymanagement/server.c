@@ -35,24 +35,52 @@ static char DeCrypt1(char c) {
 	/*>>>>         <<<<*
 	 *>>>> AUFGABE <<<<*
 	 *>>>>         <<<<*/
+	char m;
+	DES_OFB(ikey_ab, phone_iv1, &c, sizeof(char), &m);
+	return m;
 }
 
 static char DeCrypt2(char c) {
 	/*>>>>         <<<<*
 	 *>>>> AUFGABE <<<<*
 	 *>>>>         <<<<*/
+	char m;
+	DES_OFB(ikey_ab, phone_iv2, &c, sizeof(char), &m);
+	return m;
+}
+
+void PhoneAbhoeren(NetName a, NetName b) {
+	char buf1[256],buf2[256];
+	int from1=0,from2=1;
+	memset(&buf1,0,sizeof(char)*256);
+	memset(&buf2,0,sizeof(char)*256);
+	// try to abhören
+	TapConnection TapCon = TapConnect(MakeNetName2(a), MakeNetName2(b));
+	if (!TapCon){
+		fprintf(stderr,"start to ABHÖREN failed!\n");
+		return ;
+	}
+
+	// skip the initial data exchange
+	VTapReceive(TapCon,buf1,sizeof(buf1),&from1);
+	VTapReceive(TapCon,buf2,sizeof(buf2),&from2);
+
+	// phone abhören
+	PhoneTap_Init(a,b);
+	PhoneTap(TapCon, a, b, DeCrypt1, DeCrypt2);
+	printf("the session is closed! return to wait connection.\n");
 }
 
 /* ------------------------------------------------------------------------------ */
-
 int main(int argc, char **argv) {
 	Connection con; /* Verbindung vom Clienten d.h. Alice */
 	PortConnection port; /* Das Port des Servers */
 	Message msg1, msg2, msg_S2A;
-	ULONG ts, key_high, key_low;
+	ULONG ts, key_high, key_low;			//timestamp, key_AB
+	DES_key *key_sa, *key_sb;
 
 	int i, a_pos, b_pos, badserver;
-	char *ServerNetName;
+	char *ServerNetName ;
 
 	/* Konstruktion eindeutiger Namen für das Netzwerksystem:
 	 * OurName, OthersName und ServerName wird der Gruppenname vorangestellt.
@@ -118,40 +146,70 @@ int main(int argc, char **argv) {
 			 *>>>>          - Kommunikation abhören                <<<<*
 			 *>>>>                                                 <<<<*/
 
+			// Generieren den Key_AB Schlüssel
 			key_high = RandomNumber();
 			key_low = RandomNumber();
+			DES_key key_ab;
+			memcpy(&key_ab, &key_high, sizeof(ULONG));
+			memcpy(&key_ab[4], &key_low, sizeof(ULONG));
 
-
-			DES_GenKeys(0, 0, ikey_ab);
+			// Generieren TimeStamp
 			ts = GetCurrentTime();
 
+			// Generieren neue Antwort von Alice
 			msg_S2A.typ = Server_Alice;
-			memcpy(&msg_S2A.body.Server_Alice.Serv_A1.Key_AB, &ikey_ab,
-					sizeof(DES_ikey));
+			memcpy(&msg_S2A.body.Server_Alice.Serv_A1.Key_AB, &key_ab,
+					sizeof(DES_key));
 			strcpy(msg_S2A.body.Server_Alice.Serv_A1.Receiver,
 					msg1.body.Alice_Server.A);
 			msg_S2A.body.Server_Alice.Serv_A1.TimeStamp = ts;
 
-			memcpy(&msg_S2A.body.Server_Alice.Serv_B1.Key_AB, &ikey_ab,
-					sizeof(DES_ikey));
+			memcpy(&msg_S2A.body.Server_Alice.Serv_B1.Key_AB, &key_ab,
+					sizeof(DES_key));
 			strcpy(msg_S2A.body.Server_Alice.Serv_B1.Receiver,
 					msg1.body.Alice_Server.B);
 			msg_S2A.body.Server_Alice.Serv_B1.TimeStamp = ts;
 
+			// Verschlüsseln den Inhalt von Alice
+			key_sa = &UserTable[a_pos].Key;
+			DES_ikey ikey_sa;
+			DES_GenKeys(*key_sa, 0, ikey_sa);
+			DES_data iv;
+			memset(&iv, 0, sizeof(DES_data));
+
+			ServerData toEncData;
+			memcpy(&toEncData, &msg_S2A.body.Server_Alice.Serv_A1,
+					sizeof(ServerData));
+
+			DES_OFB(ikey_sa, iv, &toEncData, sizeof(ServerData),
+					&msg_S2A.body.Server_Alice.Serv_A1);
+
+			// Verschlüsseln den Inhalt von Bob
+			key_sb = &UserTable[b_pos].Key;
+			DES_ikey ikey_sb;
+			DES_GenKeys(*key_sb, 0, ikey_sb);
+			memset(&iv, 0, sizeof(DES_data));
+
+			memcpy(&toEncData, &msg_S2A.body.Server_Alice.Serv_B1,
+					sizeof(ServerData));
+			DES_OFB(ikey_sb, iv, &toEncData, sizeof(ServerData),
+					&msg_S2A.body.Server_Alice.Serv_B1);
+
 			PutMessage("Client", con, &msg_S2A);
+
+			if (badserver) {
+				DES_GenKeys(key_ab,0,ikey_ab);
+				printf("start Abhörprogramm...\n");
+				PhoneAbhoeren(msg1.body.Alice_Server.A,
+						msg1.body.Alice_Server.B);
+			}
 
 		}
 
 		/* Verbindung zu Alice abbauen */
 		DisConnect(con);
+
 	}
 
 	return 0;
-}
-
-
-char*   MakeNetName2(const char *name){
-	char str[100];
-	strcpy(str,name);
-	return str;
 }

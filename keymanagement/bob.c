@@ -39,6 +39,9 @@ static char EnCrypt(char c) {
 	/*>>>>         <<<<*
 	 *>>>> AUFGABE <<<<*
 	 *>>>>         <<<<*/
+	char cipher;
+	DES_OFB(iKey_AB, phone_iv2, &c, sizeof(char), &cipher);
+	return cipher;
 }
 
 /*
@@ -49,6 +52,9 @@ static char DeCrypt(char c) {
 	/*>>>>         <<<<*
 	 *>>>> AUFGABE <<<<*
 	 *>>>>         <<<<*/
+	char m;
+	DES_OFB(iKey_AB, phone_iv1, &c, sizeof(char), &m);
+	return m;
 }
 
 /* -------------------------------------------------------------------------------- */
@@ -66,8 +72,8 @@ int main(int argc, char **argv) {
 	 * ausgetauschten Namen sind OutName, OthersName und ServerName!
 	 */
 
-	OurNetName = MakeNetName(OurName);
-	OthersNetName = MakeNetName(OthersName);
+	OurNetName = MakeNetName2(OurName);
+	OthersNetName = MakeNetName2(OthersName);
 
 	/***************  Verbindungsaufbau zu Alice  ********************/
 
@@ -85,6 +91,58 @@ int main(int argc, char **argv) {
 	 *>>>>          - Antwort erzeugen           <<<<*
 	 *>>>>          - Schlüssel für telefonieren <<<<*
 	 *>>>>                                       <<<<*/
+
+	// Entschlüsseln die Nachricht von Alice mit Key_SB
+	DES_ikey ikey_sb;
+	DES_GenKeys(Key_BS, 0, ikey_sb);
+	DES_data iv;
+	memset(&iv, 0, sizeof(DES_data));
+
+	ServerData toDecServerData;
+	memcpy(&toDecServerData, &msg1.body.Alice_Bob.Serv_B2, sizeof(ServerData));
+	DES_OFB(ikey_sb, iv, &toDecServerData, sizeof(ServerData),
+			&msg1.body.Alice_Bob.Serv_B2);
+
+	// Überprüfen den Inhalt
+	if (strcmp(msg1.body.Alice_Bob.Serv_B2.Receiver, OurName) != 0) {
+		fprintf(stderr, "Receiver check Error!\n");
+		exit(20);
+	}
+	int TimeStamp = msg1.body.Alice_Bob.Serv_B2.TimeStamp;
+	int cur_time = GetCurrentTime();
+	if (cur_time - TimeStamp < 0 || cur_time - TimeStamp > 30000) {		//set Time-out 30s
+		fprintf(stderr, "TimeStamp check Error!\n");
+		exit(20);
+	}
+	DES_GenKeys(msg1.body.Alice_Bob.Serv_B2.Key_AB, 0, iKey_AB);
+
+	// Entschlüsslen den Auth-Inhalt mit iKey_AB
+	AuthData toDecAuthData;
+	memset(&iv, 0, sizeof(DES_data));
+	memcpy(&toDecAuthData, &msg1.body.Alice_Bob.Auth_A2, sizeof(AuthData));
+	DES_OFB(iKey_AB, iv, &toDecAuthData, sizeof(AuthData),
+			&msg1.body.Alice_Bob.Auth_A2);
+
+	if (strcmp(msg1.body.Alice_Bob.Auth_A2.Name, OthersName) != 0) {
+		fprintf(stderr, "Sender check Error!\n");
+		exit(20);
+	}
+
+	// Generieren neue Nachricht für Überprüfung, versclüsselt mit iKey_AB
+	AuthData toEncAuthData;
+	msg2.typ = Bob_Alice;
+	msg2.body.Bob_Alice.Auth_B3.Rand = SwitchRandNum(
+			msg1.body.Alice_Bob.Auth_A2.Rand);
+	strcpy(msg2.body.Bob_Alice.Auth_B3.Name, OurName);
+	memset(&iv, 0, sizeof(DES_data));
+	memcpy(&toEncAuthData, &msg2.body.Bob_Alice.Auth_B3, sizeof(AuthData));
+	DES_OFB(iKey_AB, iv, &toEncAuthData, sizeof(AuthData),
+			&msg2.body.Bob_Alice.Auth_B3);
+
+	// Senden die Nachricht
+	PutMessage(OthersName, con, &msg2);
+
+	printf("Keberos-Handshake successful!\n");
 
 	/***********************  Phone starten  *****************************/
 	Phone(con, OurName, OthersName, EnCrypt, DeCrypt);

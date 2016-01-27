@@ -10,6 +10,7 @@
  **/
 
 #include "kerberos.h"
+#include <pwd.h>
 
 /*
  * Sendet die Nachricht M über die Connection CON. Treten dabei keine
@@ -71,5 +72,29 @@ int SwitchRandNum(int x) {
 	/*>>>>                                                  <<<<*/
 	/*>>>>  Aufgabe: Zufallszahl X 'geeignet' fortschalten  <<<<*/
 	/*>>>>                                                  <<<<*/
+	return x+1000;
+}
 
+char *MakeNetName2(const char *name)
+{
+  //const char *username = getlogin();
+	struct passwd *pass=getpwuid(getuid());
+	const char *username=pass->pw_name;
+  char *res;
+  int len;
+
+  len = (name?strlen(name):0) + strlen(username)+2;
+
+  if (!(res=malloc(len))) {
+    fprintf(stderr,"FATAL ERROR in MakeNetName: out of memory\n");
+    exit(20);
+  }
+
+  strcpy(res,username);
+  if (name && *name) {
+    strcat(res,"_");
+    strcat(res,name);
+  }
+
+  return res;
 }
