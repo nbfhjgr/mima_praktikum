@@ -7,7 +7,7 @@
 #-------------------------------------------------------------
 #
 
-include $(PRAKTROOT)/include/Makefile.Settings
+include ../include/Makefile.Settings
 
 SOURCE	= exp.c exptest.c alicebob.c
 HEADER	= versuch.h
